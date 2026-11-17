@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Student Records
 
-## Getting Started
+A full-stack CRUD app built with **Next.js**, **React**, **TypeScript** and **PostgreSQL**. You can add, list, edit and delete student records from one page, and every change goes through a REST API backed by a PostgreSQL database.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+| Layer | Technology |
+|---|---|
+| Front end | Next.js 15 (App Router), React 19, TypeScript |
+| API | Next.js API routes (`app/api/students/route.ts`) |
+| Database | PostgreSQL, through the `pg` connection pool (`lib/db.ts`) |
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+All requests go to `/api/students` and use JSON.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Method | What it does | Body | Success |
+|---|---|---|---|
+| `GET` | List all students, ordered by id | none | `200` |
+| `POST` | Add a student | `{ "name", "email" }` | `201` with the new row |
+| `PUT` | Update a student | `{ "id", "name", "email" }` | `200` with the updated row |
+| `DELETE` | Delete a student | `{ "id" }` | `200` |
 
-## Learn More
+Errors return `{ "error": "..." }` with a clear status code:
 
-To learn more about Next.js, take a look at the following resources:
+- `400` when input is missing or invalid (for example, an id that is not a positive whole number)
+- `404` when no student has that id
+- `500` when the database call fails
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Every query uses parameters (`$1`, `$2`) rather than building SQL from strings, so user input cannot change the query.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Run it locally
 
-## Deploy on Vercel
+1. Create the database table in PostgreSQL:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```sql
+   CREATE TABLE students (
+     id SERIAL PRIMARY KEY,
+     name TEXT NOT NULL,
+     email TEXT NOT NULL
+   );
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Copy the example settings and fill in your database details:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. Install and start:
+
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+4. Open http://localhost:3000.
